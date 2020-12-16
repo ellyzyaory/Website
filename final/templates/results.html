@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h1>Searched for: {{ query }}</h1>
+
+<table class = 'table'>
+    <thead>
+        <th></th>
+        <th>Product</th>
+    </thead>
+
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td style = "width: 160px; height: 160px">
+
+                {% if product.productimage_set.all %}
+                    {% for item in product.productimage_set.all %}
+                        {% if item.featured %}
+                            <div style = 'width: 160px; height: 160px; background-image:url("{{ MEDIA_URL }}{{ item.image }}"); background-size: cover; background-repeat: no-repeat; background-position: center'></div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div style = 'width: 160px; height: 160px; background-image:url("{% static "img/placeholder.svg" %}"); background-size: cover; background-repeat: no-repeat; background-position: center'></div>
+                {% endif %}
+            </td>
+            <td>
+                <a href='{{ product.get.absolute_url }}'>
+                {{ product }}</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}
