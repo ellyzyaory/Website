@@ -17,5 +17,6 @@ urlpatterns = [
     path('accounts/login/', views.login_view, name='auth_login'),
     path('accounts/register/', views.registration_view, name='auth_register'),
     path('accounts/activate/<activation_key>/', views.activation_view, name='activation_view'),
+    path('checkout/completed/', views.message_success, name='message_success'),
 ]
 
