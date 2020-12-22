@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class = 'col-sm-6 col-sm-offset-3' style = 'margin-top: 50px;'>
+<h2>Register</h2>
+<div class = "d-flex justify-content-center">
+    <div class = 'col-sm-6 col-sm-offset-3' style = 'margin-top: 0px;'>
         <form method = 'POST' action="">{% csrf_token %}
             {{form.as_p}}
             <input type="submit" value = "{% if submit_btn %}{{submit_btn}}{% else %}Submit{% endif %}" class btn btn-default />
+            <p><div>Already have an account?<a href="{% url 'auth_login' %}">Login</a></div></p>
         </form>
     </div>
+</div>
 {% endblock content %}
