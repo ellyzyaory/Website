@@ -72,6 +72,7 @@ def order(request):
 
 # request for updating cart
 def update_cart(request, slug):
+    #request.session.set_expiry(3)
     try:
         qty = request.GET.get("qty")
         update_qty = True
@@ -165,6 +166,7 @@ def checkout(request):
         final_amount = new_checkout.get_final_amount()
     try:
         address_added = request.GET.get("address_added")
+
     except:
         address_added = None
 
@@ -184,6 +186,7 @@ def checkout(request):
 
 
     current_addresses = UserAddress.objects.filter(user = request.user)
+   
 
     if request.method == "POST":          
         try:
@@ -192,15 +195,18 @@ def checkout(request):
         except:
             customer = None
             pass
-        if customer is not None:         
-            token = request.POST.get('stripeToken', False)
-            card = customer.cards.create(card = token)
+        if customer is not None:   
+            token = request.POST.get('stripeToken')
+            card = stripe.Customer.create_source(user_stripe, source = "tok_visa")
             charge = stripe.Charge.create(
-                amount = int(final_amount * 1000),
+                amount = int(final_amount * 1000000),
                 currency = "idr",
                 card = card,
                 customer = customer, 
                 description = "Charge for %s" %(request.user.username),
+                #card = token,
+                #source = source
+
                 )
             if charge["captured"]:
                 new_checkout.status = "Finished"
@@ -208,7 +214,8 @@ def checkout(request):
                 del request.session["cart_id"]
                 del request.session["items_total"]
                 messages.success(request, "Thank you! Your order has been completed.")
-                return HttpResponseRedirect(reverse("order_2"))
+                return HttpResponseRedirect(reverse("message_success"))
+
 
     context = {
     "checkout" : new_checkout,
@@ -248,7 +255,7 @@ def login_view(request):
         "form" : form,
         "submit_btn" : btn,
     }
-    return render(request, "form.html", context)
+    return render(request, "login_form.html", context)
 
 # request for registration form
 def registration_view(request):
@@ -259,12 +266,12 @@ def registration_view(request):
         new_user.save()
         messages.success(request, "Successfully Registered. Please confirm your email now.")
         return HttpResponseRedirect("/")
- 
+        
     context = {
         "form" : form,
         "submit_btn" : btn,
     }
-    return render(request, "form.html", context)
+    return render(request, "register_form.html", context)
 
 # activation view for confirming email
 SHA1_RE = re.compile('^[a-f0-9]{40}$')
@@ -291,3 +298,6 @@ def activation_view(request, activation_key):
         return render(request, "activation_complete.html", context)
     else:
         raise Http404
+
+def message_success(request):
+    return render(request, "message_success.html")
