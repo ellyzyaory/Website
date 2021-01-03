@@ -1,39 +1,32 @@
 {% extends 'base.html'%}
+
 {% block jquery %}
 <script>
-var card = elements.create('card', {style:style});
-card.mount("#card-element");
-card.addEventListener('change', function(event){
-if (event.error){
-    displayError.textContent = event.error.message;
-}else{
-    displayError.textContent = '';
-}
-});
-    var stripe = Stripe('{{ stripe_pub }}');
-    Stripe.setPublishableKey('{{ stripe_pub }}');
-var form = document.getElementById('payment-form');
-form.addEventListener('submit', function(event) {
-event.preventDefault();
-
-  stripe.createToken(card).then(function(result) {
-    if (result.error) {
-      // Inform the customer that there was an error.
-      var errorElement = document.getElementById('card-errors');
-      errorElement.textContent = result.error.message;
-    } else {
-      // Send the token to your server.
-      stripeTokenHandler(result.token);
-    }
+    stripe.setPublishableKey('{{ stripe_pub }}')
+  var form = document.getElementById('payment-form');
+  
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+  
+    stripe.createSource(card, user).then(function(result) {
+      if (result.error) {
+        // Inform the user if there was an error
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = result.error.message;
+      } else {
+        // Send the source to your server
+        stripeSourceHandler(result.source);
+      }
+    });
   });
-});
-function stripeTokenHandler(token) {
-    // Insert the token ID into the form so it gets submitted to the server
+
+  function stripeSourceHandler(source) {
+    // Insert the source ID into the form so it gets submitted to the server
     var form = document.getElementById('payment-form');
     var hiddenInput = document.createElement('input');
     hiddenInput.setAttribute('type', 'hidden');
-    hiddenInput.setAttribute('name', 'stripeToken');
-    hiddenInput.setAttribute('value', token.id);
+    hiddenInput.setAttribute('name', 'stripeSource');
+    hiddenInput.setAttribute('value', source.id);
     form.appendChild(hiddenInput);
   
     // Submit the form
@@ -41,7 +34,6 @@ function stripeTokenHandler(token) {
   }
 </script>
 {% endblock jquery %}
-
 
 {% block content %}
     <h1>Current Total: {{ checkout.get_final_amount }}</h1>
@@ -51,7 +43,7 @@ function stripeTokenHandler(token) {
             <h3>Add new address</h3>
             <form method = "POST" action="" id="payment-form">{% csrf_token %}
             {{ address_form.as_p }}
-            <input type="submit" class = "btn btn-default" value = "Add Address" />
+            <input type="submit" class = "btn btn-outline-secondary" value = "Add Address" />
             </form>
         </div>
     {% endif %}
@@ -64,8 +56,8 @@ function stripeTokenHandler(token) {
                 <h3>Saved Address</h3>
                 <!--get every address that is added-->
                 {% for address in current_addresses %}
-                    <input type="radio" name = "saved_address" value="{{ address_id }}" />{{ address.get_address }} <br/>
-                {% endfor %}
+                    <input type="radio" name = "saved_address" value="{{ address_id }}"/>{{ address.get_address }} <br/>
+                    {% endfor %}
             </div>
         {% endif %}
 
@@ -75,6 +67,7 @@ function stripeTokenHandler(token) {
                 <span class = "payment-errors"></span>
                 <div class = "form-row">
                     <label>
+                        <!--Card Number-->
                         <span>Card Number</span>
                         <input type="text" size="20" data-stripe = "number" />
                     </label>
@@ -82,6 +75,7 @@ function stripeTokenHandler(token) {
 
                 <div class = "form-row">
                     <label>
+                        <!--CVC-->
                         <span>CVC</span>
                         <input type="text" size="4" data-stripe = "cvc" />
                     </label>
@@ -89,7 +83,8 @@ function stripeTokenHandler(token) {
 
                 <div class = "form-row">
                     <label>
-                        <span>Expiration (MM/YYYY)</span>
+                        <!--Expiration date-->
+                        <span>Expiration (MM/YY)</span>
                         <input type="text" size="4" data-stripe = "exp-month" />
                     </label>
                     <label>
@@ -99,6 +94,7 @@ function stripeTokenHandler(token) {
                 </div>
                 <button type="submit">Submit Payment</button>
             </div>
+            
     </form>
         
 {% endblock content %}
