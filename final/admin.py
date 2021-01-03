@@ -1,13 +1,11 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Product, ProductImage, Cart, CartItem, Checkout, UserStripe, EmailConfirmed, UserAddress
+from .models import Product, ProductImage, Cart, CartItem, Checkout, UserStripe, UserAddress, EmailConfirmed
 
 class UserAddressAdmin(admin.ModelAdmin):
     class Meta:
         model = UserAddress
-
-admin.site.register(UserAddress, UserAddressAdmin)
 
 #Some product details can be changed without looking inside
 #Product can be found by searching or filtering 
@@ -22,15 +20,15 @@ class ProductAdmin(admin.ModelAdmin):
     class Meta:
         model = Product
 
-
-admin.site.register(Product, ProductAdmin)
-
-admin.site.register(ProductImage)
-
 # Cart 
 class CartAdmin(admin.ModelAdmin):
     class Meta:
         model = Cart
+
+# register the model in admin
+admin.site.register(Product, ProductAdmin)
+
+admin.site.register(ProductImage)
 
 admin.site.register(Cart, CartAdmin)
 
@@ -41,3 +39,6 @@ admin.site.register(Checkout)
 admin.site.register(UserStripe)
 
 admin.site.register(EmailConfirmed)
+
+admin.site.register(UserAddress, UserAddressAdmin)
+
