@@ -1,8 +1,7 @@
 from django.shortcuts import render, HttpResponseRedirect
 from django.http import HttpResponse, Http404
-from .models import Product, Cart, CartItem, Checkout, EmailConfirmed, UserAddress
+from .models import Product, Cart, CartItem, Checkout, UserAddress, EmailConfirmed
 from django.urls import reverse
-import time
 import re
 import stripe
 from .utils import id_generator
@@ -33,6 +32,7 @@ def search(request):
 
 # request for home
 def home(request):
+    # Take all the products
     products = Product.objects.all()
     context = {"products" : products}
     template = "home.html"
@@ -40,6 +40,7 @@ def home(request):
 
 # request for menu
 def menu(request):
+    # Take all the products
     products = Product.objects.all()
     context = {"products" : products}
     template = "menu.html"
@@ -49,7 +50,8 @@ def menu(request):
 def food(request, slug):
     try:
         product = Product.objects.get(slug = slug)
-        context = {"product" : product}
+        images = product.productimage_set.all()
+        context = {"product" : product, "images" : images}
         template = "food.html"
         return render(request, template, context)
     except:
@@ -72,7 +74,6 @@ def order(request):
 
 # request for updating cart
 def update_cart(request, slug):
-    #request.session.set_expiry(3)
     try:
         qty = request.GET.get("qty")
         update_qty = True
@@ -147,6 +148,7 @@ def checkout(request):
         the_id = None
         return HttpResponseRedirect(reverse("order"))
 
+    # try if product exist, get the product
     try:
         new_checkout = Checkout.objects.get(cart = cart)
     except Checkout.DoesNotExist:
@@ -159,14 +161,17 @@ def checkout(request):
     except:
         new_checkout = None
         return HttpResponseRedirect(reverse("order"))
+
     final_amount = 0
     if new_checkout is not None:
         new_checkout.sub_total = cart.total
         new_checkout.save()
         final_amount = new_checkout.get_final_amount()
+
+    # Address
     try:
         address_added = request.GET.get("address_added")
-
+ 
     except:
         address_added = None
 
@@ -174,6 +179,7 @@ def checkout(request):
         address_form = UserAddressForm()
     else:
         address_form = None
+
     if request.method == "POST":
         address_form = UserAddressForm(request.POST)
         if address_form.is_valid():
@@ -181,13 +187,11 @@ def checkout(request):
             new_address.user = request.user
             new_address.save()
             address_form = UserAddressForm()
-
-
-
+            return HttpResponseRedirect(reverse("checkout"))
 
     current_addresses = UserAddress.objects.filter(user = request.user)
-   
 
+    # Checkout using stripe
     if request.method == "POST":          
         try:
             user_stripe = request.user.userstripe.stripe_id
@@ -196,26 +200,21 @@ def checkout(request):
             customer = None
             pass
         if customer is not None:   
-            token = request.POST.get('stripeToken')
+            token = request.POST.get('stripeSource')
             card = stripe.Customer.create_source(user_stripe, source = "tok_visa")
             charge = stripe.Charge.create(
-                amount = int(final_amount * 1000000),
+                amount = int(final_amount * 100000),
                 currency = "idr",
                 card = card,
                 customer = customer, 
                 description = "Charge for %s" %(request.user.username),
-                #card = token,
-                #source = source
-
                 )
             if charge["captured"]:
                 new_checkout.status = "Finished"
                 new_checkout.save()
                 del request.session["cart_id"]
                 del request.session["items_total"]
-                messages.success(request, "Thank you! Your order has been completed.")
                 return HttpResponseRedirect(reverse("message_success"))
-
 
     context = {
     "checkout" : new_checkout,
@@ -273,6 +272,7 @@ def registration_view(request):
     }
     return render(request, "register_form.html", context)
 
+
 # activation view for confirming email
 SHA1_RE = re.compile('^[a-f0-9]{40}$')
 def activation_view(request, activation_key):
@@ -299,5 +299,6 @@ def activation_view(request, activation_key):
     else:
         raise Http404
 
+# success message
 def message_success(request):
     return render(request, "message_success.html")
