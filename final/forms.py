@@ -4,6 +4,7 @@ from .models import UserAddress
 
 User = get_user_model()
 
+# Address form feature
 class UserAddressForm(forms.ModelForm):
     class Meta:
         model = UserAddress
@@ -11,14 +12,13 @@ class UserAddressForm(forms.ModelForm):
                 "address2",
                 "city", 
                 "phone_number",]
-                #"billing",
 
-
+# Login an account (the account should exist)
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget = forms.PasswordInput())
 
-    # check username
+    # Check username
     def clean_username(self):
         username = self.cleaned_data.get("username")
         try:
@@ -27,7 +27,7 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("Are you sure you are registered? We cannot find this user.")
         return username
     
-    # check password
+    # Check password
     def clean_password(self):
         username = self.cleaned_data.get("username")
         password = self.cleaned_data.get("password")
@@ -43,6 +43,7 @@ class LoginForm(forms.Form):
         else:
             return password
 
+# Register an account
 class RegistrationForm(forms.ModelForm):
     email = forms.EmailField(label = "Your Email")
     password1 = forms.CharField(label = "Password", \
