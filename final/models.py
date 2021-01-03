@@ -7,25 +7,31 @@ from django.template.loader import render_to_string
 from decimal import Decimal
 import stripe
 
-
-
 # Create your models here.
 
 # Adding new product details in admin
 class Product(models.Model):
+    # Character field is required to have a maximum length
     title = models.CharField(max_length = 120)
+    # Field not required (text field)
     description = models.TextField(null = True, blank = True)
+    # Decimal field needs to have the decimal places and maximum digits
     price = models.DecimalField(decimal_places = 3, max_digits = 100)
+    # Field not required (decimal field)
     sale_price = models.DecimalField(decimal_places = 3, max_digits = 100, null = True, blank = True)
-    #image = models.FileField(upload_to = 'products/images', null = True)
+    # Identifier for a product --> unique slug
     slug = models.SlugField(unique = True)
+    # First added to the database (date time field)
     timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
+    # Most recently change in database (date time field)
     updated = models.DateTimeField(auto_now_add = False, auto_now = True)
+    # The product details by default will show (boolean --> True/False)
     active = models.BooleanField(default = True)
 
     def __unicode__(self):
         return str(self.title)
 
+    # Unique title and slug
     class Meta:
         unique_together = ('title', 'slug') 
 
@@ -38,10 +44,14 @@ class Product(models.Model):
 # Adding new product images in admin
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # Upload image for a product
     image = models.ImageField(upload_to = 'products/images/')
+    # The product image will not show by default in featured and thumbnail (boolean --> True/False)
     featured = models.BooleanField(default = False)
     thumbnail = models.BooleanField(default = False)
+    # The product image by default will show (boolean --> True/False)
     active = models.BooleanField(default = True)
+    # Most recently change in database (date time field)
     updated = models.DateTimeField(auto_now_add = False, auto_now = True)
 
     def __unicode__(self):
@@ -53,8 +63,9 @@ class CartItem(models.Model):
     # cart foreign key
     product = models.ForeignKey(Product, on_delete = models.CASCADE)
     quantity = models.IntegerField(default = 1)
-    total_line = models.DecimalField(default = 0.000, max_digits = 1000, decimal_places = 3)
+    # First added to the database (date time field)
     timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
+    # Most recently change in database (date time field)
     updated = models.DateTimeField(auto_now_add = False, auto_now = True)
 
     def __unicode__(self):
@@ -66,8 +77,11 @@ class CartItem(models.Model):
 # Cart features in admin
 class Cart(models.Model):
     total = models.DecimalField(decimal_places = 3, max_digits = 100, default = 0.000)
+    # First added to the database (date time field)
     timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
+    # Most recently change in database (date time field)
     updated = models.DateTimeField(auto_now_add = False, auto_now = True)
+    # The product image by default will show (boolean --> True/False)
     active = models.BooleanField(default = True)
 
     def __unicode__(self):
@@ -88,13 +102,15 @@ except Exception as e:
 # Checkout features in admin
 class Checkout(models.Model):
     user = models.ForeignKey(User, blank = True, null = True, on_delete = models.CASCADE)
-    checkout_id = models.CharField(max_length = 120, default = 'ABC', unique  = True)
     cart = models.ForeignKey(Cart, on_delete = models.CASCADE)
+    # Default choice as start
     status = models.CharField(max_length = 120, choices = STATUS_CHOICES, default = "Started")
-    # address
+    # Address
+    address = models.ForeignKey("UserAddress", blank = True, null = True, on_delete = models.CASCADE)
     sub_total = models.DecimalField(default = 0.000, max_digits = 1000, decimal_places = 3)
     tax_total = models.DecimalField(default = 0.000, max_digits = 1000, decimal_places = 3)
     final_total = models.DecimalField(default = 0.000, max_digits = 1000, decimal_places = 3)
+    # Unique checkout id
     checkout_id = models.CharField(max_length = 120, default = 'ABC', unique = True)
     timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
     updated = models.DateTimeField(auto_now_add = False, auto_now = True)
@@ -103,6 +119,7 @@ class Checkout(models.Model):
         return self.checkout_id
 
     def get_final_amount(self):
+        # Get checkout products
         instance = Checkout.objects.get(id = self.id)
         three_places = Decimal(1000) 
         instance.tax_total = Decimal(Decimal("%s"%(tax_rate)) * Decimal(self.sub_total)).quantize(three_places)
@@ -117,6 +134,25 @@ class UserStripe(models.Model):
 
     def __unicode__(self):
         return str(self.stripe_id)
+
+
+# User address features in admin
+class UserAddress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.CASCADE)
+    address = models.CharField(max_length = 120)
+    address2 = models.CharField(max_length = 120, null = True, blank = True)
+    city = models.CharField(max_length = 120)
+    phone_number = models.CharField(max_length = 120)
+    timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
+    updated = models.DateTimeField(auto_now_add = False, auto_now = True)
+
+    def __unicode__(self):
+        return str(self.user.username)
+
+    # get the address and city
+    def get_address(self):
+        return "%s, %s" %(self.address, self.city)
+
 
 # Email Confirmation features in admin
 class EmailConfirmed(models.Model):
@@ -141,19 +177,6 @@ class EmailConfirmed(models.Model):
     def email_user(self, subject, message, from_email = None, **kwargs):
         send_mail(subject, message, from_email, [self.user.email], kwargs)
 
-# User address features in admin
-class UserAddress(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.CASCADE)
-    address = models.CharField(max_length = 120)
-    address2 = models.CharField(max_length = 120, null = True, blank = True)
-    city = models.CharField(max_length = 120)
-    phone_number = models.CharField(max_length = 120)
-    timestamp = models.DateTimeField(auto_now_add = True, auto_now = False)
-    updated = models.DateTimeField(auto_now_add = False, auto_now = True)
 
-    def __unicode__(self):
-        return str(self.user.username)
+    
 
-    # get the address and city
-    def get_address(self):
-        return "%s, %s" %(self.address, self.city)
