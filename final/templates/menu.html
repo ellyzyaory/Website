@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 
+<h2>Menu</h2>
 <div class = 'row'>
         {% for product in products %}
             <div class = 'col-sm-3'>
@@ -9,27 +10,26 @@
                 {% if product.productimage_set.all %}
                     {% for item in product.productimage_set.all %}
                         {% if item.featured %}
+                            <a href='{{ product.get_absolute_url }}'>
                             <div style = 
-                            "width:160px;
-                            height:160px;
-                            background-image:url('{{ MEDIA_URL }}{{ item.image }}');
-                            background-repeat:no-repeat;
-                            background-size:cover;
-                            background-position:center;
+                            "width:220px;
+                            height:200px;
                             margin:0 auto;">
-
+                            <div class = 'background_img_thumb' style = "background-image:url('/media/{{ item.image }}');"></div>
                             </div>
+                            </a>
                     {% endif %}
                     {% endfor %}
                     
                 {% else %}
+                    <a href='{{ product.get_absolute_url }}'>
                     <img class='img-responsive' src='{% static "img/placeholder.svg" %}'/>
+                    </a>
                 {% endif %}
 
             <div class = "caption">
                 <a href='{{ product.get_absolute_url }}'><h3>{{ product.title }}</h3></a>
                 <p>{{ product.description|truncatewords:15}}</p>
-                <p><a href="{{ product.get_absolute_url }}" class = "btn btn-primary" role = "button">View</a><a href="#" class = "btn btn-default" role = "button">Button</a></p>
             </div>
         </div>
 
