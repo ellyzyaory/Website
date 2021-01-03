@@ -12,13 +12,17 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 User = get_user_model()
 
+# Receive signal
 def get_or_create_stripe(sender, user, *args, **kwargs):
+    # Get the id
     try:
         user.userstripe.stripe_id
     except UserStripe.DoesNotExist:
+        # Create customer
         customer = stripe.Customer.create(
             email = str(user.email)
         )
+        # Create user and id
         new_user_stripe = UserStripe.objects.create(
             user = user,
             stripe_id = customer.id
@@ -26,9 +30,11 @@ def get_or_create_stripe(sender, user, *args, **kwargs):
     except:
         pass
 
+# Sending signal to login
 user_logged_in.connect(get_or_create_stripe)
 
 def get_create_stripe(user):
+    # Get or create stripe user
     new_user_stripe, created = UserStripe.objects.get_or_create(user = user)
     if created:
         customer = stripe.Customer.create(
@@ -44,11 +50,11 @@ def user_created(sender, instance, created, *args, **kwargs):
         email_confirmed, email_is_created = EmailConfirmed.objects.get_or_create(user = user)
         if email_is_created:
             short_hash = hashlib.sha1(str(random.random())).hexdigest()[:5]
-            base, domain = str(user.email(). split("0"))
+            base, domain = str(user.email().split("0"))
             activation_key = hashlib.sha1(short_hash+base).hexdigest()
             email_confirmed.activation_key = activation_key
             email_confirmed.save()
             email_confirmed.activate_user_email
-        
 
 post_save.connect(user_created, sender = User)
+
