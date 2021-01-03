@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 
@@ -19,16 +18,20 @@
                 {% if product.productimage_set.all %}
                     {% for item in product.productimage_set.all %}
                         {% if item.featured %}
-                            <div style = 'width: 160px; height: 160px; background-image:url("{{ MEDIA_URL }}{{ item.image }}"); background-size: cover; background-repeat: no-repeat; background-position: center'></div>
+                            <a href='{{ product.get_absolute_url }}'>
+                            <div class = 'background_img_thumb' style = "height: 160px; width:160px; background-image:url('/media/{{ item.image }}')"></div>
+                            </a>
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div style = 'width: 160px; height: 160px; background-image:url("{% static "img/placeholder.svg" %}"); background-size: cover; background-repeat: no-repeat; background-position: center'></div>
+                    <a href='{{ product.get_absolute_url }}'>
+                    <div class = 'background_img_thumb' style = "height: 160px; width:160px" ></div>
+                    </a>
                 {% endif %}
             </td>
             <td>
-                <a href='{{ product.get.absolute_url }}'>
-                {{ product }}</a>
+                <a href='{{ product.get_absolute_url }}'>
+                {{ product.title }}</a>
             </td>
         </tr>
         {% endfor %}
