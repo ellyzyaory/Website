@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'final',
+    'django_extensions',
 
 ]
 
@@ -137,13 +138,14 @@ DEFAULT_TAX_RATE = 0.08
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static","static_root")
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR),"final_project", "static", "static_root")
 STATICFILES_DIRS = (
-    os.path.join(os.path.dirname(BASE_DIR), "static", "static_files"),
+    os.path.join(os.path.dirname(BASE_DIR),"final_project", "static", "static_files", "img"),
+    os.path.join(os.path.dirname(BASE_DIR), "final_project", "final", "static", "img"),
     #r'C:\Users\Johanes\project\final_project\static\static\static_files',
 )
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static", "media")
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "final_project", "static", "media")
 
 STRIPE_SECRET_KEY = "sk_test_51HtT5gBc2FlQjGOxTQDldaTNQlYWsX9xkWv7WORTjzFKYGqnqQ3DThem2xKozHLQHLBvszOt5hiDKH4QpFpjqKJC004yMuDJ0P"
 STRIPE_PUBLISHABLE_KEY = "pk_test_51HtT5gBc2FlQjGOxXZcCWUnl4vIFOiSYG47SngEm7YjFvg23PTfifkkqpITBNOXUMJYF3h9Fo7iv6f6soFOdu89g00koLKnksg"
